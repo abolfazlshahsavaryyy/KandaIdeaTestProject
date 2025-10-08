@@ -1,0 +1,6 @@
+@AgriculturalLandManagement_HostAddress = http://localhost:5115
+
+GET {{AgriculturalLandManagement_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
