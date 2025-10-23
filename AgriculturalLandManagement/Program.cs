@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using AgriculturalLandManagement.Data;
 using AgriculturalLandManagement.Repositories;
 using System.Reflection;
+using AgriculturalLandManagement.Helper;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services
@@ -33,7 +34,7 @@ if (app.Environment.IsDevelopment())
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
     });
 }
-
+app.UseRequestTiming();
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
