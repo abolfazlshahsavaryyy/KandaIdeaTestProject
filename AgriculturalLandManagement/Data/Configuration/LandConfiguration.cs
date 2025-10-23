@@ -18,12 +18,12 @@ namespace AgriculturalLandManagement.Data.Configurations
                 .IsRequired()
                 .HasMaxLength(200);
 
-            builder.Property(l => l.X1).IsRequired();
-            builder.Property(l => l.Y1).IsRequired();
-            builder.Property(l => l.X2).IsRequired();
-            builder.Property(l => l.Y2).IsRequired();
-
             builder.Property(l => l.Area).IsRequired();
+
+            builder.HasMany(l => l.Corners)
+                .WithOne(c => c.Land)
+                .HasForeignKey(c => c.LandId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

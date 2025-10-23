@@ -25,7 +25,7 @@ namespace AgriculturalLandManagement.Repositories
 
         public async Task<Land> AddAsync(Land land)
         {
-            land.Area = Math.Abs(land.X1 - land.X2) * Math.Abs(land.Y1 - land.Y2);
+            // land.Area = Math.Abs(land.X1 - land.X2) * Math.Abs(land.Y1 - land.Y2);
 
             _context.Lands.Add(land);
             await _context.SaveChangesAsync();
@@ -42,13 +42,13 @@ namespace AgriculturalLandManagement.Repositories
             // Update properties that can change
             existing.OwnerName = land.OwnerName;
             existing.Production = land.Production;
-            existing.X1 = land.X1;
-            existing.Y1 = land.Y1;
-            existing.X2 = land.X2;
-            existing.Y2 = land.Y2;
+            // existing.X1 = land.X1;
+            // existing.Y1 = land.Y1;
+            // existing.X2 = land.X2;
+            // existing.Y2 = land.Y2;
         
             // Recalculate area
-            existing.Area = Math.Abs(land.X1 - land.X2) * Math.Abs(land.Y1 - land.Y2);
+            //existing.Area = Math.Abs(land.X1 - land.X2) * Math.Abs(land.Y1 - land.Y2);
         
             await _context.SaveChangesAsync();
             return existing;
