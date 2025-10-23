@@ -20,8 +20,8 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Register Repository
 builder.Services.AddScoped<ILandRepository, LandRepository>();
+builder.Services.AddScoped<ILandService, LandService>();
 
 var app = builder.Build();
 
