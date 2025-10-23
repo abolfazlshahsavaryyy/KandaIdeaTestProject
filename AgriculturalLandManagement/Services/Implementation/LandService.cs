@@ -1,6 +1,6 @@
 using AgriculturalLandManagement.Models;
 using AgriculturalLandManagement.Repositories;
-
+namespace AgriculturalLandManagement.Service;
 public class LandService : ILandService
 {
     private readonly ILandRepository _landRepository;

@@ -3,6 +3,7 @@ using AgriculturalLandManagement.Data;
 using AgriculturalLandManagement.Repositories;
 using System.Reflection;
 using AgriculturalLandManagement.Helper;
+using AgriculturalLandManagement.Service;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services
@@ -23,6 +24,12 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<ILandRepository, LandRepository>();
 builder.Services.AddScoped<ILandService, LandService>();
 
+builder.Services.AddScoped<ICornerRepository, CornerRepository>();
+
+//web socket configuration as middle ware
+builder.Services.AddScoped<CornerUploadMiddleware>();
+
+
 var app = builder.Build();
 
 // Enable Swagger UI in development
@@ -34,6 +41,10 @@ if (app.Environment.IsDevelopment())
         c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
     });
 }
+app.UseStaticFiles();
+app.UseWebSockets();
+app.UseMiddleware<CornerUploadMiddleware>();
+
 app.UseRequestTiming();
 app.UseHttpsRedirection();
 app.UseAuthorization();
