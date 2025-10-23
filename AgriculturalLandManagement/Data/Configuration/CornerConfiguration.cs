@@ -14,6 +14,9 @@ public class CornerConfiguration : IEntityTypeConfiguration<Corner>
         builder.Property(c => c.Longitude)
             .IsRequired();
 
+        builder.Property(c => c.CreatedAt)
+            .IsRequired();
+
         builder.HasOne(c => c.Land)
             .WithMany(l => l.Corners)
             .HasForeignKey(c => c.LandId);
