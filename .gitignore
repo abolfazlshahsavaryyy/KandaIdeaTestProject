@@ -856,3 +856,7 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 
+AgriculturalLandManagement/app.db
+AgriculturalLandManagement/app.db-shm
+
+AgriculturalLandManagement/app.db-wal
