@@ -25,6 +25,7 @@ builder.Services.AddScoped<ILandRepository, LandRepository>();
 builder.Services.AddScoped<ILandService, LandService>();
 
 builder.Services.AddScoped<ICornerRepository, CornerRepository>();
+builder.Services.AddScoped<ICornerImageRepository, CornerImageRepository>();
 
 //web socket configuration as middle ware
 builder.Services.AddScoped<CornerUploadMiddleware>();
