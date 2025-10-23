@@ -64,10 +64,10 @@ namespace AgriculturalLandManagement.Controllers
             {
                 OwnerName = dto.OwnerName,
                 Production = dto.Production,
-                X1 = dto.X1,
-                Y1 = dto.Y1,
-                X2 = dto.X2,
-                Y2 = dto.Y2
+                // X1 = dto.X1,
+                // Y1 = dto.Y1,
+                // X2 = dto.X2,
+                // Y2 = dto.Y2
                 // Area is calculated in repository
             };
 
@@ -100,10 +100,10 @@ namespace AgriculturalLandManagement.Controllers
             // Map DTO to entity
             existing.OwnerName = dto.OwnerName;
             existing.Production = dto.Production;
-            existing.X1 = dto.X1;
-            existing.Y1 = dto.Y1;
-            existing.X2 = dto.X2;
-            existing.Y2 = dto.Y2;
+            // existing.X1 = dto.X1;
+            // existing.Y1 = dto.Y1;
+            // existing.X2 = dto.X2;
+            // existing.Y2 = dto.Y2;
 
             var updated = await _repository.UpdateAsync(existing);
 
