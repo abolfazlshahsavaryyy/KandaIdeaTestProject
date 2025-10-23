@@ -1,6 +1,10 @@
+using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Net.WebSockets;
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
+using System.Threading.Tasks;
 using AgriculturalLandManagement.Models;
 
 public class CornerUploadMiddleware :IMiddleware
@@ -8,14 +12,19 @@ public class CornerUploadMiddleware :IMiddleware
     
     private readonly ICornerRepository _cornerRepository;
     private readonly ILogger<CornerUploadMiddleware> _logger;
+    private readonly ICornerImageRepository _cornerImageRepository;
 
     private static readonly Dictionary<int, List<byte[]>> _imageChunks = new();
     public static List<(int cornerIndex, byte[] imageData)> PendingImages = new();
+    public static int LandIdSave=0;
 
-    public CornerUploadMiddleware( ICornerRepository cornerRepository,ILogger<CornerUploadMiddleware> logger)
+    public CornerUploadMiddleware(ICornerRepository cornerRepository,
+        ILogger<CornerUploadMiddleware> logger,
+        ICornerImageRepository cornerImageRepository)
     {
         _cornerRepository = cornerRepository;
         _logger = logger;
+        _cornerImageRepository = cornerImageRepository;
     }
 
     public async Task InvokeAsync(HttpContext context,RequestDelegate next)
@@ -64,6 +73,60 @@ public class CornerUploadMiddleware :IMiddleware
         }
 
         FinalizeImages();
+        ParallelProcessImages();
+        await SaveImages();
+    }
+
+    private async Task SaveImages()
+    {
+        try
+        {
+            foreach (var (index, image) in PendingImages)
+            {
+                await _cornerImageRepository.CreateAsync(new CornerImage
+                {
+                    ImageData = image
+                }, LandIdSave, index);
+            }
+            _logger.LogInformation("Image saved in db");
+        }
+        catch(Exception ex)
+        {
+            _logger.LogError(ex.Message);
+        }
+    }
+
+    private void ParallelProcessImages()
+    {
+        var stopwatch = Stopwatch.StartNew();
+    
+        // Thread-safe collection for processed images
+        var updatedImages = new ConcurrentBag<(int cornerIndex, byte[] imageData)>();
+    
+        Parallel.ForEach(PendingImages, item =>
+        {
+            int cornerIndex = item.cornerIndex;
+            byte[] imageData = item.imageData;
+    
+            // Simulate processing
+            byte[] processedImage = ReduceImageSize(imageData);
+    
+            updatedImages.Add((cornerIndex, processedImage));
+            _logger.LogInformation($"Processed image in parallel for cornerIndex {cornerIndex}");
+        });
+    
+        PendingImages = updatedImages.ToList();
+
+        stopwatch.Stop();
+        //it should take (number_of_image/free_thread)*1000 
+        _logger.LogInformation($"✅ Parallel image processing completed in {stopwatch.ElapsedMilliseconds} ms");
+    }
+    
+    private byte[] ReduceImageSize(byte[] original)
+    {
+        
+        Thread.Sleep(1000); 
+        return original;
     }
 
     private async Task<(int? updatedCornerCount, int updatedCornerIndex)> HandleTextMessage(
@@ -115,6 +178,10 @@ public class CornerUploadMiddleware :IMiddleware
                 Longitude = obj.GetProperty("longitude").GetDouble(),
                 Index = obj.GetProperty("cornerIndex").GetInt32()
             };
+            if (LandIdSave == 0)
+            {
+                LandIdSave = corner.LandId;
+            }
 
             _logger.LogInformation("Creating corner: {@corner}", corner);
             await _cornerRepository.CreateAsync(corner);
