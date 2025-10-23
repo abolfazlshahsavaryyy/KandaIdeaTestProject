@@ -3,6 +3,7 @@ using System;
 using AgriculturalLandManagement.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AgriculturalLandManagement.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251023171926_AddFeatureToCorner2")]
+    partial class AddFeatureToCorner2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.9");
@@ -28,9 +31,6 @@ namespace AgriculturalLandManagement.Migrations
                         .HasColumnType("TEXT")
                         .HasDefaultValueSql("GETUTCDATE()");
 
-                    b.Property<int>("Index")
-                        .HasColumnType("INTEGER");
-
                     b.Property<int>("LandId")
                         .HasColumnType("INTEGER");
 
@@ -39,6 +39,9 @@ namespace AgriculturalLandManagement.Migrations
 
                     b.Property<double>("Longitude")
                         .HasColumnType("REAL");
+
+                    b.Property<int>("index")
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
