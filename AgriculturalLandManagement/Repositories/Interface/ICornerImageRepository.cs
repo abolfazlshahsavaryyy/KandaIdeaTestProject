@@ -7,4 +7,5 @@ public interface ICornerImageRepository
     Task<bool> CreateAsync(CornerImage image);
     Task<bool> UpdateAsync(int id, byte[] imageData);
     Task<bool> DeleteAsync(int id);
+    Task<bool> CreateAsync(CornerImage image, int landId, int cornerIndex);
 }

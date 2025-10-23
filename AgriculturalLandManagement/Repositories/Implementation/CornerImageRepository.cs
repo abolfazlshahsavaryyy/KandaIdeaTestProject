@@ -109,4 +109,37 @@ public class CornerImageRepository : ICornerImageRepository
             return false;
         }
     }
+    public async Task<bool> CreateAsync(CornerImage image, int landId, int cornerIndex)
+    {
+        try
+        {
+            // 1️⃣ Find the Corner using landId and cornerIndex
+            var corner = await _context.Corners
+                .FirstOrDefaultAsync(c => c.LandId == landId && c.Index == cornerIndex);
+    
+            if (corner == null)
+            {
+                _logger.LogWarning($"No corner found with LandId={landId} and Index={cornerIndex}");
+                return false;
+            }
+    
+            // 2️⃣ Set the foreign key
+            image.CornerId = corner.Id;
+    
+            // 3️⃣ Add the image to the DbSet
+            await _context.CornerImages.AddAsync(image);
+    
+            // 4️⃣ Save changes
+            await _context.SaveChangesAsync();
+    
+            _logger.LogInformation($"Image added for CornerId={corner.Id} (LandId={landId}, Index={cornerIndex})");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error creating image for LandId={landId}, CornerIndex={cornerIndex}: {ex.Message}");
+            return false;
+        }
+    }
+    
 }
