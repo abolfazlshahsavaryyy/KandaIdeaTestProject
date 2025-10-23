@@ -1,128 +1,108 @@
-using Microsoft.AspNetCore.Mvc;
 using AgriculturalLandManagement.Models;
-using AgriculturalLandManagement.Repositories;
-using AgriculturalLandManagement.Dtos;
+using Microsoft.AspNetCore.Mvc;
 
-namespace AgriculturalLandManagement.Controllers
+[ApiController]
+[Route("api/[controller]")]
+public class LandController : ControllerBase
 {
-    [ApiController]
-    [Route("api/[controller]")]
-    public class LandController : ControllerBase
+    private readonly ILandService _landService;
+
+    public LandController(ILandService landService)
     {
-        private readonly ILandRepository _repository;
+        _landService = landService;
+    }
 
-        public LandController(ILandRepository repository)
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<LandReadDto>>> GetAll()
+    {
+        var lands = await _landService.GetAllAsync();
+        var dtos = lands.Select(l => new LandReadDto
         {
-            _repository = repository;
-        }
+            Id = l.Id,
+            OwnerName = l.OwnerName,
+            Production = l.Production,
+            Area = l.Area
+        });
 
-        /// <summary>
-        /// Get all lands in the system.
-        /// </summary>
-        /// <returns>List of all lands</returns>
-        [HttpGet]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<IEnumerable<Land>>> GetAll()
+        return Ok(dtos);
+    }
+
+    [HttpGet("{id}")]
+    public async Task<ActionResult<LandReadDto>> GetById(int id)
+    {
+        var land = await _landService.GetByIdAsync(id);
+        if (land == null)
+            return NotFound();
+
+        var dto = new LandReadDto
         {
-            var lands = await _repository.GetAllAsync();
-            return Ok(lands);
-        }
+            Id = land.Id,
+            OwnerName = land.OwnerName,
+            Production = land.Production,
+            Area = land.Area
+        };
 
-        
-        /// <summary>
-        /// Get a land by its Id.
-        /// </summary>
-        /// <param name="id">The id of the land</param>
-        /// <returns>The land object</returns>
-        [HttpGet("{id}")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<Land>> GetById(int id)
+        return Ok(dto);
+    }
+
+    [HttpPost]
+    public async Task<ActionResult<LandReadDto>> Create([FromBody] LandCreateDto dto)
+    {
+        var land = new Land
         {
-            var land = await _repository.GetByIdAsync(id);
-            if (land == null) return NotFound();
-            return Ok(land);
-        }
+            OwnerName = dto.OwnerName,
+            Production = dto.Production,
+            Area = 0
+        };
 
-        
-        /// <summary>
-        /// Create a new land.
-        /// Computes the area based on two corners. 
-        /// You cannot have X1 == X2 or Y1 == Y2, because that would make the land a line.
-        /// </summary>
-        /// <param name="dto">DTO containing owner name, production, and two corner coordinates</param>
-        /// <returns>The created land object with computed area</returns>
-        [HttpPost]
-        [ProducesResponseType(StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [HttpPost]
-        
-        public async Task<ActionResult<Land>> Create(CreateLandDto dto)
+        var created = await _landService.CreateAsync(land);
+
+        var resultDto = new LandReadDto
         {
-            // Map DTO to entity
-            var land = new Land
-            {
-                OwnerName = dto.OwnerName,
-                Production = dto.Production,
-                // X1 = dto.X1,
-                // Y1 = dto.Y1,
-                // X2 = dto.X2,
-                // Y2 = dto.Y2
-                // Area is calculated in repository
-            };
+            Id = created.Id,
+            OwnerName = created.OwnerName,
+            Production = created.Production,
+            Area = created.Area
+        };
 
-            var created = await _repository.AddAsync(land);
+        return CreatedAtAction(nameof(GetById), new { id = resultDto.Id }, resultDto);
+    }
 
-            return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
-        }
+    [HttpPut("{id}")]
+    public async Task<ActionResult<LandReadDto>> Update(int id, [FromBody] LandUpdateDto dto)
+    {
+        if (id != dto.Id)
+            return BadRequest("ID mismatch");
 
-
-        /// <summary>
-        /// Update an existing land by Id.
-        /// Can change owner, production, and corner coordinates.
-        /// Area will be recalculated automatically.
-        /// X1 == X2 or Y1 == Y2 is not allowed.
-        /// </summary>
-        /// <param name="id">Id of the land to update</param>
-        /// <param name="dto">DTO with updated fields</param>
-        /// <returns>The updated land object</returns>
-        [HttpPut("{id}")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<Land>> Update(int id, UpdateLandDto dto)
+        var land = new Land
         {
-            // Validate DTO automatically via [ApiController] + IValidatableObject
+            Id = dto.Id,
+            OwnerName = dto.OwnerName,
+            Production = dto.Production
+        };
 
-            var existing = await _repository.GetByIdAsync(id);
-            if (existing == null) return NotFound();
+        var updated = await _landService.UpdateAsync(land);
+        if (updated == null)
+            return NotFound();
 
-            // Map DTO to entity
-            existing.OwnerName = dto.OwnerName;
-            existing.Production = dto.Production;
-            // existing.X1 = dto.X1;
-            // existing.Y1 = dto.Y1;
-            // existing.X2 = dto.X2;
-            // existing.Y2 = dto.Y2;
-
-            var updated = await _repository.UpdateAsync(existing);
-
-            return Ok(updated);
-        }
-        
-        /// <summary>
-        /// Delete a land by Id.
-        /// </summary>
-        /// <param name="id">The Id of the land to delete</param>
-        [HttpDelete("{id}")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult> Delete(int id)
+        var resultDto = new LandReadDto
         {
-            var deleted = await _repository.DeleteAsync(id);
-            if (!deleted) return NotFound();
+            Id = updated.Id,
+            OwnerName = updated.OwnerName,
+            Production = updated.Production,
+            Area = updated.Area
+        };
 
-            return NoContent();
-        }
+        return Ok(resultDto);
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var success = await _landService.DeleteAsync(id);
+        if (!success)
+            return NotFound();
+
+        return NoContent();
     }
 }
