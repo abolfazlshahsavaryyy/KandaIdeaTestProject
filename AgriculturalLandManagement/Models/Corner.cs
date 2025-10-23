@@ -12,6 +12,7 @@ public class Corner
 
     // Foreign key to Land
     public int LandId { get; set; }
+    public DateTime CreatedAt{ get; set; }
 
     // Navigation property
     public Land Land { get; set; }
