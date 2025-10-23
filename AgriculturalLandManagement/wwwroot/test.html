@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>WebSocket Corner Upload Test</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    #log { white-space: pre-line; margin-top: 10px; color: green; }
+    button { padding: 10px 15px; font-size: 16px; cursor: pointer; }
+  </style>
+</head>
+<body>
+
+  <h2>WebSocket Upload Test</h2>
+  <button id="startBtn">Send Test Data</button>
+  <div id="log"></div>
+
+  <script>
+    document.getElementById("startBtn").addEventListener("click", async () => {
+      const log = msg => document.getElementById("log").textContent += msg + "\n";
+
+      const socket = new WebSocket("ws://localhost:5115/ws");
+
+      const corners = [
+        { landId: 1, latitude: 35.1234, longitude: 51.5678, cornerIndex: 0 },
+        { landId: 1, latitude: 35.2234, longitude: 51.6678, cornerIndex: 1 },
+        { landId: 1, latitude: 35.3234, longitude: 51.7678, cornerIndex: 2 }
+      ];
+
+      const cornerCount = corners.length;
+      const fakeImages = [
+        new Blob(["This is fake image 1"], { type: "image/jpeg" }),
+        new Blob(["This is fake image 2"], { type: "image/jpeg" }),
+        new Blob(["This is fake image 3"], { type: "image/jpeg" })
+      ];
+
+      socket.onopen = async () => {
+        log("✅ Connected to WebSocket server.");
+
+        // 1️⃣ Send corner count
+        socket.send(JSON.stringify({ cornerCount }));
+        log("Sent cornerCount: " + cornerCount);
+
+        // 2️⃣ Send each corner (flat structure — no type or data wrapper)
+        for (const corner of corners) {
+          socket.send(JSON.stringify(corner));
+          log(`Sent corner metadata for index ${corner.cornerIndex}`);
+          await new Promise(r => setTimeout(r, 200));
+        }
+
+        // 3️⃣ Send images: first send corner index, then chunks
+        for (let i = 0; i < fakeImages.length; i++) {
+          const buffer = await fakeImages[i].arrayBuffer();
+          const chunkSize = 1024;
+          
+          // tell backend which corner image is next
+          socket.send(JSON.stringify({ cornerIndex: i }));
+          log(`Sent cornerIndex: ${i}`);
+
+          for (let offset = 0; offset < buffer.byteLength; offset += chunkSize) {
+            const chunk = buffer.slice(offset, offset + chunkSize);
+            socket.send(chunk);
+          }
+
+          log(`Finished sending image for corner ${i}`);
+          await new Promise(r => setTimeout(r, 200));
+        }
+
+        socket.close();
+        log("✅ Done! Connection closed.");
+      };
+
+      socket.onerror = err => log("❌ WebSocket error: " + err.message);
+      socket.onclose = () => log("🔒 Socket closed by server.");
+      socket.onmessage = event => log("📨 Server: " + event.data);
+    });
+  </script>
+</body>
+</html>
