@@ -9,10 +9,11 @@ public class Corner
 
     [Required]
     public double Longitude { get; set; }
+    public int Index{ get; set; }
 
     // Foreign key to Land
     public int LandId { get; set; }
-    public DateTime CreatedAt{ get; set; }
+    public DateTime CreatedAt { get; set; }
 
     // Navigation property
     public Land Land { get; set; }

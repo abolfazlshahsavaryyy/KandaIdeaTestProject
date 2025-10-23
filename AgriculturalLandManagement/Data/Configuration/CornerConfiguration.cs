@@ -15,6 +15,10 @@ public class CornerConfiguration : IEntityTypeConfiguration<Corner>
             .IsRequired();
 
         builder.Property(c => c.CreatedAt)
+            .IsRequired()
+            .HasDefaultValueSql("GETUTCDATE()");
+
+        builder.Property(c => c.Index)
             .IsRequired();
 
         builder.HasOne(c => c.Land)
